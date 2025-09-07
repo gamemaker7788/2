@@ -1,20 +1,39 @@
 class CommentApp {
     constructor() {
-        // 安全访问 supabase
-        this.supabase = window.supabase;
-        if (!this.supabase) {
+        // 安全访问检查
+        if (typeof window.supabase === 'undefined') {
             console.error('Supabase 未初始化');
             this.showError('系统初始化中，请稍后重试...');
+            // 延迟重试
+            setTimeout(() => this.retryInit(), 1000);
             return;
         }
         
+        this.supabase = window.supabase;
+        this.initApplication();
+    }
+    
+    retryInit() {
+        if (typeof window.supabase !== 'undefined') {
+            this.supabase = window.supabase;
+            this.initApplication();
+        }
+    }
+    
+    initApplication() {
         this.initElements();
         this.bindEvents();
         this.loadComments();
         this.setupRealtime();
     }
-
+    
     async loadComments() {
+        // 添加安全检查
+        if (!this.supabase) {
+            console.error('Supabase 客户端未就绪');
+            return;
+        }
+        
         try {
             const { data: comments, error } = await this.supabase
                 .from('comments')
@@ -24,15 +43,7 @@ class CommentApp {
             if (error) throw error;
             this.renderComments(comments);
         } catch (error) {
-            console.error('加载失败:', error);
-            this.showError('加载评论失败，请刷新页面重试');
+            console.error('加载评论失败:', error);
         }
     }
-
-    // 其他方法保持不变...
 }
-
-// 延迟初始化确保 DOM 就绪
-setTimeout(() => {
-    new CommentApp();
-}, 100);
