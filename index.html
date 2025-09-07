@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Supabase 实时评论系统</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
 </head>
 <body>
     <div class="container">
@@ -17,13 +18,17 @@
             <div class="comment-form">
                 <input type="text" id="username" placeholder="你的昵称（可选）" maxlength="20">
                 <textarea id="comment-input" placeholder="分享你的想法..." rows="3" required></textarea>
-                <button id="submit-comment" class="btn btn-primary">发布评论</button>
+                <div class="form-footer">
+                    <span id="char-count">0/500</span>
+                    <button id="submit-comment" class="btn btn-primary">发布评论</button>
+                </div>
                 <div id="error-message" class="message error"></div>
             </div>
 
             <div id="comments-container" class="comments-container">
                 <div class="loading">加载评论中...</div>
             </div>
+            <button id="load-more" class="btn btn-secondary" style="display: none;">加载更多</button>
         </div>
 
         <footer>
@@ -31,12 +36,9 @@
         </footer>
     </div>
 
-    <!-- Supabase SDK -->
-    <script src="https://fezxhcmiefdbvqmhczut.supabase.co"></script>
-    
-    <!-- 配置文件 -->
+    <!-- 正确的加载顺序 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
-
