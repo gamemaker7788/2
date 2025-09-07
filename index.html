@@ -6,43 +6,75 @@
     <title>Supabase 实时评论系统</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
-    <!-- 使用 defer 异步加载 Supabase SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <!-- 先加载 Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>💬 实时评论系统</h1>
-            <p>基于 Supabase 构建，无需服务器</p>
+            <h1>💬 Supabase 实时评论系统</h1>
+            <p>基于 GitHub Pages + Supabase 构建</p>
         </header>
 
         <div class="comment-section">
+            <!-- 连接状态指示器 -->
+            <div class="connection-status">
+                <span class="status-dot" id="status-dot"></span>
+                <span class="status-text" id="status-text">连接中...</span>
+                <button id="manual-sync" class="btn btn-outline">🔄 手动同步</button>
+            </div>
+
             <div class="comment-form">
-                <input type="text" id="username" placeholder="你的昵称（可选）" maxlength="20" 
-                       aria-label="评论者昵称">
-                <textarea id="comment-input" placeholder="分享你的想法..." rows="3" required
-                          aria-label="评论内容" maxlength="500"></textarea>
+                <input type="text" id="username" placeholder="你的昵称（可选）" maxlength="20">
+                <textarea id="comment-input" placeholder="分享你的想法..." rows="3" required></textarea>
                 <div class="form-footer">
                     <span id="char-count">0/500</span>
                     <button id="submit-comment" class="btn btn-primary">发布评论</button>
                 </div>
-                <div id="error-message" class="message error" role="alert"></div>
+                <div id="error-message" class="message error"></div>
             </div>
 
             <div id="comments-container" class="comments-container">
                 <div class="loading">加载评论中...</div>
             </div>
+            
             <button id="load-more" class="btn btn-secondary" style="display: none;">加载更多</button>
         </div>
 
         <footer>
-            <p>Powered by GitHub Pages & Supabase | 数据实时同步 🔄</p>
+            <p>Powered by GitHub Pages & Supabase | 数据实时同步 🔄 | 2025/9/7</p>
         </footer>
     </div>
 
-    <!-- 配置文件 -->
-    <script src="supabase-config.js" defer></script>
-    <!-- 主逻辑 -->
-    <script src="script.js" defer></script>
+    <!-- 全局配置和初始化 -->
+    <script>
+    // Supabase 配置
+    const SUPABASE_URL = 'https://fezxhcmiefdbvqmhczut.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlenhoY21pZWZkYnZxbWhjenV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxNjE1MDYsImV4cCI6MjA3MjczNzUwNn0.MdXghSsixHXeYhZKbMYuJGehMUvdbtixGNjMmBPMKKU';
+
+    // 全局初始化 Supabase
+    document.addEventListener('DOMContentLoaded', function() {
+        try {
+            window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+                auth: { persistSession: false },
+                global: { headers: { 'Content-Type': 'application/json' } }
+            });
+            console.log('Supabase 初始化成功');
+            
+            // 延迟启动应用
+            setTimeout(() => {
+                if (typeof CommentApp === 'function') {
+                    new CommentApp();
+                }
+            }, 100);
+        } catch (error) {
+            console.error('Supabase 初始化失败:', error);
+            document.getElementById('comments-container').innerHTML = 
+                '<div class="message error">系统初始化失败: ' + error.message + '</div>';
+        }
+    });
+    </script>
+    
+    <script src="script.js"></script>
 </body>
 </html>
