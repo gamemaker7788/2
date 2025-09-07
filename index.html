@@ -25,7 +25,10 @@
     } catch (error) {
         console.error('初始化失败:', error);
     }
-    </script>
-    <script src="script.js"></script>
+    <!-- 正确的加载顺序 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
+
