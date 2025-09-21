@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💬 人物评论系统</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬💬💬💬</text></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+
+        .container {
+            max-width: 1200px; /* 增加最大宽度 */
+            margin: 0 auto;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        /* 修改profile-section样式 */
+        .profile-section {
+	display: flex;
+	flex-wrap: wrap; /* 允许换行 */
+	justify-content: center; /* 居中对齐 */
+	gap: 15px; /* 项目间距 */
+	padding: 20px;
+	background: #f0f7ff;
+	border-bottom-width: 1px;
+	border-top-style: solid;
+	border-bottom-style: solid;
+	border-top-color: #00F;
+	border-bottom-color: #ddd;
+	border-top-width: 20px;
+        }
+
+        .profile-image {
+            width: 100px; /* 稍微缩小一点 */
+            height: 120px;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            flex-shrink: 0; /* 防止压缩 */
+        }
+
+        .profile-image:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-info h2 {
+            color: #1e40af;
+            margin-bottom: 10px;
+        }
+
+        .profile-info p {
+            margin-bottom: 5px;
+            color: #4b5563;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px;
+            background: #eff6ff;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3b82f6;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .comment-section {
+            padding: 20px;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #ffa500;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ffa500;
+        }
+
+        .status-dot.connected {
+            background: #4caf50;
+        }
+
+        .status-dot.disconnected {
+            background: #f44336;
+        }
+
+        .status-text {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .comment-form {
+            margin-bottom: 30px;
+        }
+
+        .comment-form input,
+        .comment-form textarea {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .comment-form input:focus,
+        .comment-form textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .star-rating {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .stars {
+            display: flex;
+        }
+
+        .stars input[type="radio"] {
+            display: none;
+        }
+
+        .stars label {
+            font-size: 24px;
+            color: #ddd;
+            cursor: pointer;
+            transition: color
+			css
+
+.rating-stars {
+
+color: #ffc107;
+
+font-size: 16px;
+
+}
+
+复制
+.rating-value {
+    font-size: 14px;
+    color: #666;
+    font-weight: 500;
+}
+
+.loading, .no-comments {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+}
+
+.message {
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+.message.error {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+}
+
+.message.success {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #6ee7b7;
+}
+
+.footer {
+    text-align: center;
+    padding: 20px;
+    background: #f1f3f6;
+    color: #666;
+    border-top: 1px solid #ddd;
+}
+
+@media (max-width: 768px) {
+    .profile-section {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .profile-image {
+        margin-right: 0;
+        margin-bottom: 15px;
+    }
+    
+    .form-footer {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .connection-status {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .star-rating {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* 移除多余的样式 */
+.profile-image1,
+.profile-image11,
+.profile-image111 {
+    display: none;
+}
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="header">
+
+<h1>学科-数学</h1>
+
+<p>理性发言，尊重他人</p>
+
+
+</div>
+
+<div class="profile-section">
+    <a href="https://gamemaker7788.github.io/2/lhz.html" class="profile-image">老师</a>
+   
+   
+</div>
+<div class="profile-section">
+     <a href="https://gamemaker7788.github.io/2/wqc.html" class="profile-image">王琦朝</a>
+    <a href="https://gamemaker7788.github.io/2/wyc.html" class="profile-image">王昱朝</a>
+</div>
+
+<div class="footer">
+    <p>作者: 王 | © 数据实时同步 | 2025/9/20</p>
+</div>
+</div>
+</body>
+
+</html>
+
