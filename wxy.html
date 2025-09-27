@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💬 人物评论系统</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬💬💬💬</text></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+	line-height: 1.6;
+	color: #333;
+	background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+	min-height: 100vh;
+	padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .profile-section {
+            display: flex;
+            padding: 20px;
+            background: #f0f7ff;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .profile-image {
+            width: 120px;
+            height: 150px;
+            background: #3b82f6;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 40px;
+            margin-right: 20px;
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-info h2 {
+            color: #1e40af;
+            margin-bottom: 10px;
+        }
+
+        .profile-info p {
+            margin-bottom: 5px;
+            color: #4b5563;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px;
+            background: #eff6ff;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3b82f6;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .comment-section {
+            padding: 20px;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #ffa500;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ffa500;
+        }
+
+        .status-dot.connected {
+            background: #4caf50;
+        }
+
+        .status-dot.disconnected {
+            background: #f44336;
+        }
+
+        .status-text {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .comment-form {
+            margin-bottom: 30px;
+        }
+
+        .comment-form input,
+        .comment-form textarea {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .comment-form input:focus,
+        .comment-form textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .star-rating {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .stars {
+            display: flex;
+        }
+
+        .stars input[type="radio"] {
+            display: none;
+        }
+
+        .stars label {
+            font-size: 24px;
+            color: #ddd;
+            cursor: pointer;
+            transition: color 0.3s;
+            padding: 0 2px;
+        }
+
+        .stars label:hover,
+        .stars label:hover ~ label,
+        .stars input[type="radio"]:checked ~ label {
+            color: #ffc107;
+        }
+
+        .stars input[type="radio"]:checked + label {
+            color: #ffc107;
+        }
+
+        .form-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #char-count {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #2563eb;
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #3b82f6;
+            color: #3b82f6;
+            padding: 8px 16px;
+        }
+
+        .btn-outline:hover {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .comments-container {
+            max-height: 500px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .comment {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .username {
+            font-weight: bold;
+            color: #3b82f6;
+        }
+
+        .timestamp {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .comment-content {
+            color: #333;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+
+        .comment-rating {
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .rating-stars {
+            color: #ffc107;
+            font-size: 16px;
+        }
+
+        .rating-value {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .loading, .no-comments {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .message.error {
+            background: #fee2e2;
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+        }
+
+        .message.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #6ee7b7;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background: #f1f3f6;
+            color: #666;
+            border-top: 1px solid #ddd;
+        }
+
+        @media (max-width: 768px) {
+            .profile-section {
+                flex-direction: column;
+                align-items: center;
+
+                text-align: center;
+            }
+            
+            .profile-image {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+            
+            .form-footer {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .connection-status {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .star-rating {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💬 人物评论系统</h1>
+            <p>理性发言，尊重他人</p>
+            <p>&nbsp;</p>
+            <a href="https://gamemaker7788.github.io/2/pl.html" class="btn btn-primary btn-icon" target="_blank">
+                        <span>返回首页</span>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M18 13V19C18 19.5304 17.7893 20.0391 17.4142 20.4142C17.0391 20.7893 16.5304 21 16 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V8C3 7.46957 3.21071 6.96086 3.58579 6.58579C3.96086 6.21071 4.46957 6 5 6H11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M15 3H21V9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M10 14L21 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+        </div>
+        
+        <div class="profile-section">
+            <div class="profile-image">王</div>
+            <div class="profile-info">
+                <h2>王祥妤</h2>
+            <p>职位：暂无</p>
+                <p>身高：暂无</p>
+                <p>体重：暂无          </p>
+                <p>描述：宋唯宁的忠实粉丝儿~</p>
+          </div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value" id="avg-rating">5.0</div>
+                <div class="stat-label">平均评分</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="rating-count">0</div>
+                <div class="stat-label">评分人数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">臭的</div>
+                <div class="stat-label">总评论数</div>
+            </div>
+        </div>
+        
+        <div class="comment-section">
+            <div class="connection-status">
+                <span class="status-dot" id="status-dot"></span>
+                <span class="status-text" id="status-text">连接中...</span>
+                <button id="manual-sync" class="btn btn-outline">🔄 手动同步</button>
+            </div>
+
+            <div class="comment-form">
+                <input type="text" id="username" placeholder="你的昵称（可选）" maxlength="20">
+                <textarea rows="3" id="comment-input" placeholder="理性发言，尊重他人..." required></textarea>
+                
+                <div class="star-rating">
+                    <span>评分：</span>
+                    <div class="stars">
+                        <input type="radio" id="star5" name="stars" value="5">
+                        <label for="star5">★</label>
+                        <input type="radio" id="star4" name="stars" value="4">
+                        <label for="star4">★</label>
+                        <input type="radio" id="star3" name="stars" value="3">
+                        <label for="star3">★</label>
+                        <input type="radio" id="star2" name="stars" value="2">
+                        <label for="star2">★</label>
+                        <input type="radio" id="star1" name="stars" value="1">
+                        <label for="star1">★</label>
+                    </div>
+                </div>
+                
+                <div class="form-footer">
+                    <span id="char-count">0/500</span>
+                    <button id="submit-comment" class="btn btn-primary">发布评论</button>
+                </div>
+                <div id="error-message" class="message error"></div>
+            </div>
+
+            <div id="comments-container" class="comments-container">
+                <div class="loading">加载评论中...</div>
+            </div>
+            
+            <button id="load-more" class="btn btn-secondary" style="display: none; width: 100%;">加载更多</button>
+        </div>
+        
+        <div class="footer">
+            <p>作者: 王 | © 数据实时同步 | 2025/9/20</p>
+        </div>
+    </div>
+
+<script>
+        // Supabase 配置
+        const SUPABASE_URL = 'https://kigvcvivgrlokocehkmn.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtpZ3Zjdml2Z3Jsb2tvY2Voa21uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyODQ1NzEsImV4cCI6MjA3Mzg2MDU3MX0.MlfKaRDy6tCRh0XB3b9sd5zhxpSMD0ohZZqaWghyWFM';
+        const TABLE_NAME = 'wxy'; // 表名变量，可在此处修改
+
+        // 全局初始化 Supabase
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+                    auth: { persistSession: false },
+                    global: { headers: { 'Content-Type': 'application/json' } }
+                });
+                console.log('Supabase 初始化成功');
+                
+                // 延迟启动应用
+                setTimeout(() => {
+                    if (typeof CommentApp === 'function') {
+                        window.commentApp = new CommentApp();
+                    }
+                }, 100);
+            } catch (error) {
+                console.error('Supabase 初始化失败:', error);
+                document.getElementById('comments-container').innerHTML = 
+                    '<div class="message error">系统初始化失败: ' + error.message + '</div>';
+            }
+        });
+
+        /**
+         * Supabase 实时评论系统
+         * 完整的同步功能实现，包含星级评分
+         */
+        class CommentApp {
+            constructor() {
+                this.supabase = window.supabaseClient;
+                this.tableName = TABLE_NAME; // 使用表名变量
+                
+                if (!this.supabase) {
+                    console.error('Supabase 未初始化');
+                    this.showError('系统初始化中，请稍后重试...');
+                    setTimeout(() => this.retryInit(), 1000);
+                    return;
+                }
+                
+                this.initApplication();
+            }
+            
+            retryInit() {
+                if (window.supabaseClient) {
+                    this.supabase = window.supabaseClient;
+                    this.initApplication();
+                }
+            }
+            
+            initApplication() {
+                this.isSubmitting = false;
+                this.isLoading = false;
+                this.offset = 0;
+                this.limit = 10;
+                this.commentCount = 0;
+                this.realtimeSubscription = null;
+                this.heartbeatInterval = null;
+                
+                this.savedUsername = localStorage.getItem('comment-username') || '';
+                
+                this.initElements();
+                this.bindEvents();
+                this.loadComments();
+                this.setupRealtime();
+                this.startHeartbeat();
+                this.updateConnectionStatus('connected');
+                this.calculateAverageRating();
+            }
+            
+            initElements() {
+                this.elements = {
+                    submitBtn: document.getElementById('submit-comment'),
+                    commentInput: document.getElementById('comment-input'),
+                    usernameInput: document.getElementById('username'),
+                    errorMsg: document.getElementById('error-message'),
+                    container: document.getElementById('comments-container'),
+                    loadMoreBtn: document.getElementById('load-more'),
+                    charCount: document.getElementById('char-count'),
+                    statusDot: document.getElementById('status-dot'),
+                    statusText: document.getElementById('status-text'),
+                    manualSync: document.getElementById('manual-sync'),
+                    avgRating: document.getElementById('avg-rating'),
+                    ratingCount: document.getElementById('rating-count')
+                };
+                
+                if (this.savedUsername) {
+                    this.elements.usernameInput.value = this.savedUsername;
+                }
+            }
+            
+            bindEvents() {
+                this.elements.submitBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.submitComment();
+                });
+                
+                this.elements.loadMoreBtn.addEventListener('click', () => {
+                    this.loadComments();
+                });
+                
+                this.elements.manualSync.addEventListener('click', () => {
+                    this.manualSync();
+                });
+                
+                this.elements.commentInput.addEventListener('input', () => {
+                    this.updateCharCount();
+                });
+                
+                this.elements.usernameInput.addEventListener('change', () => {
+                    localStorage.setItem('comment-username', this.elements.usernameInput.value.trim());
+                });
+                
+                // 网络状态监听
+                window.addEventListener('online', () => {
+                    this.updateConnectionStatus('connected');
+                    this.setupRealtime();
+                });
+                
+                window.addEventListener('offline', () => {
+                    this.updateConnectionStatus('disconnected');
+                    this.showError('网络连接已断开');
+                });
+            }
+            
+            async loadComments() {
+                if (this.isLoading) return;
+                
+                this.isLoading = true;
+                this.elements.loadMoreBtn.style.display = 'none';
+                this.elements.container.innerHTML = '<div class="loading">加载评论中...</div>';
+
+                try {
+                    const { data: comments, error, count } = await this.supabase
+                        .from(this.tableName)
+                        .select('*', { count: 'exact' })
+                        .order('created_at', { ascending: false })
+                        .range(this.offset, this.offset + this.limit - 1);
+                    
+                    if (error) {
+                        console.error('Supabase查询错误:', error);
+                        throw new Error('加载评论失败: ' + error.message);
+                    }
+                    
+                    this.commentCount = count;
+                    this.elements.container.innerHTML = '';
+                    
+                    if (!comments || comments.length === 0) {
+                        this.elements.container.innerHTML = '<div class="no-comments">还没有评论，快来发表第一条吧！</div>';
+                        return;
+                    }
+                    
+                    comments.forEach(comment => {
+                        this.elements.container.appendChild(this.createCommentElement(comment));
+                    });
+                    
+                    if (this.offset + this.limit < this.commentCount) {
+                        this.elements.loadMoreBtn.style.display = 'block';
+                    }
+                    
+                    this.offset += this.limit;
+                    
+                    // 加载评论后计算平均评分
+                    this.calculateAverageRating();
+                    
+                } catch (error) {
+                    console.error('加载评论失败:', error);
+                    this.elements.container.innerHTML = 
+                        `<div class="message error">${error.message}</div>`;
+                } finally {
+                    this.isLoading = false;
+                }
+            }
+            
+            setupRealtime() {
+                if (!this.supabase) return;
+                
+                // 清除旧连接
+                if (this.realtimeSubscription) {
+                    this.supabase.removeChannel(this.realtimeSubscription);
+                }
+                
+                this.realtimeSubscription = this.supabase
+                    .channel('comments-realtime')
+                    .on('postgres_changes', {
+                        event: 'INSERT',
+                        schema: 'public',
+                        table: this.tableName,
+                    }, (payload) => {
+                        console.log('收到新评论:', payload.new);
+                        this.addNewComment(payload.new);
+                        this.calculateAverageRating();
+                    })
+                    .on('system', { event: 'disconnect' }, () => {
+                        console.warn('实时连接断开');
+                        this.updateConnectionStatus('disconnected');
+                    })
+                    .on('system', { event: 'reconnect' }, () => {
+                        console.log('实时连接恢复');
+                        this.updateConnectionStatus('connected');
+                    })
+                    .subscribe((status) => {
+                        console.log('实时订阅状态:', status);
+                        if (status === 'SUBSCRIBED') {
+                            this.updateConnectionStatus('connected');
+                        }
+                    });
+            }
+            
+            addNewComment(comment) {
+                const newCommentElement = this.createCommentElement(comment);
+                this.elements.container.insertBefore(newCommentElement, this.elements.container.firstChild);
+                this.commentCount++;
+                
+                // 显示新消息提示
+                this.showMessage('收到新评论！', 'success');
+            }
+            
+            async submitComment() {
+                if (this.isSubmitting) return;
+                
+                const content = this.elements.commentInput.value.trim();
+                const username = this.elements.usernameInput.value.trim() || '匿名用户';
+                const rating = this.getSelectedRating();
+
+                if (!content) {
+                    this.showError('请输入评论内容');
+                    return;
+                }
+                
+                if (content.length > 500) {
+                    this.showError('评论内容不能超过500字');
+                    return;
+                }
+                
+                this.isSubmitting = true;
+                this.clearError();
+                this.elements.submitBtn.textContent = '发布中...';
+                this.elements.submitBtn.disabled = true;
+                
+                try {
+                    const commentData = {
+                        username: this.sanitizeInput(username),
+                        content: this.sanitizeInput(content),
+                        stars: rating.toString()
+                    };
+                    
+                    const { error } = await this.supabase
+                        .from(this.tableName)
+                        .insert([commentData]);
+                    
+                    if (error) {
+                        console.error('Supabase插入错误:', error);
+                        throw new Error('发布失败: ' + error.message);
+                    }
+                    
+                    this.elements.commentInput.value = '';
+                    this.updateCharCount();
+                    
+                    // 清除选中的星级
+                    this.clearStarSelection();
+                    
+                } catch (error) {
+                    console.error('添加评论失败:', error);
+                    this.showError(error.message);
+                } finally {
+                    this.isSubmitting = false;
+                    this.elements.submitBtn.textContent = '发布评论';
+                    this.elements.submitBtn.disabled = false;
+                }
+            }
+            
+            // 计算平均评分
+            async calculateAverageRating() {
+                try {
+                    const { data, error } = await this.supabase
+                        .from(this.tableName)
+                        .select('stars')
+                        .not('stars', 'is', null);
+                    
+                    if (error) {
+                        console.error('计算平均评分失败:', error);
+                        return;
+                    }
+                    
+                    if (data && data.length > 0) {
+                        const ratings = data.map(item => {
+                            const rating = parseInt(item.stars);
+                            return isNaN(rating) ? 0 : rating;
+                        });
+                        
+                        const total = ratings.reduce((sum, rating) => sum + rating, 0);
+                        const average = (total / ratings.length).toFixed(1);
+                        const validRatings = ratings.length;
+                        
+                        // 更新页面显示
+                        if (this.elements.avgRating) {
+                            this.elements.avgRating.textContent = average;
+                        }
+                        if (this.elements.ratingCount) {
+                            this.elements.ratingCount.textContent = validRatings;
+                        }
+                    } else {
+                        // 没有评分数据时的显示
+                        if (this.elements.avgRating) {
+                            this.elements.avgRating.textContent = '0.0';
+                        }
+                        if (this.elements.ratingCount) {
+                            this.elements.ratingCount.textContent = '0';
+                        }
+                    }
+                } catch (error) {
+                    console.error('计算平均评分错误:', error);
+                }
+            }
+            
+            manualSync() {
+                this.showMessage('手动同步中...', 'success');
+                this.offset = 0;
+                this.loadComments();
+                this.setupRealtime();
+            }
+            
+            startHeartbeat() {
+                // 每30秒发送心跳保持连接
+                this.heartbeatInterval = setInterval(() => {
+                    if (this.supabase && navigator.online) {
+                        this.supabase.channel('heartbeat').subscribe();
+                    }
+                }, 30000);
+            }
+            
+            updateConnectionStatus(status) {
+                const statusDot = this.elements.statusDot;
+                const statusText = this.elements.statusText;
+                
+                statusDot.className = 'status-dot';
+                statusText.textContent = status === 'connected' ? '实时连接中' : '连接断开';
+                
+                if (status === 'connected') {
+                    statusDot.classList.add('connected');
+                } else if (status === 'disconnected') {
+                    statusDot.classList.add('disconnected');
+                }
+            }
+            
+            // 获取选中的评分
+            getSelectedRating() {
+                const selectedStar = document.querySelector('input[name="stars"]:checked');
+                return selectedStar ? parseInt(selectedStar.value) : 0;
+            }
+            
+            // 清除星级选择
+            clearStarSelection() {
+                const starInputs = document.querySelectorAll('input[name="stars"]');
+                starInputs.forEach(star => {
+                    star.checked = false;
+                });
+            }
+            
+            createCommentElement(comment) {
+                const element = document.createElement('div');
+                element.className = 'comment';
+                element.setAttribute('data-id', comment.id);
+                
+                const header = document.createElement('div');
+                header.className = 'comment-header';
+                
+                const username = document.createElement('span');
+                username.className = 'username';
+                username.textContent = this.sanitizeInput(comment.username);
+                
+                const timestamp = document.createElement('span');
+                timestamp.className = 'timestamp';
+                timestamp.textContent = new Date(comment.created_at).toLocaleString();
+                
+                const content = document.createElement('div');
+                content.className = 'comment-content';
+                content.textContent = this.sanitizeInput(comment.content);
+                
+                // 显示评分
+                if (comment.stars !== null && comment.stars !== undefined) {
+                    const ratingDiv = document.createElement('div');
+                    ratingDiv.className = 'comment-rating';
+                    
+                    const stars = document.createElement('span');
+                    stars.className = 'rating-stars';
+                    const ratingValue = parseInt(comment.stars);
+                    stars.textContent = ratingValue > 0 ? '★'.repeat(ratingValue) : '无评分';
+                    
+                    const value = document.createElement('span');
+                    value.className = 'rating-value';
+                    value.textContent = `(${comment.stars}/5)`;
+                    
+                    ratingDiv.appendChild(stars);
+                    ratingDiv.appendChild(value);
+                    content.appendChild(ratingDiv);
+                }
+                
+                header.appendChild(username);
+                header.appendChild(timestamp);
+                element.appendChild(header);
+                element.appendChild(content);
+                
+                return element;
+            }
+            
+            updateCharCount() {
+                const length = this.elements.commentInput.value.length;
+                this.elements.charCount.textContent = `${length}/500`;
+            }
+            
+            showError(message) {
+                this.elements.errorMsg.textContent = message;
+                this.elements.errorMsg.style.display = 'block';
+            }
+            
+            showMessage(message, type = 'success') {
+                const messageElement = document.createElement('div');
+                messageElement.className = `message ${type}`;
+                messageElement.textContent = message;
+                
+                // 插入到页面顶部
+                const container = document.querySelector('.container');
+                container.insertBefore(messageElement, container.firstChild);
+                
+                // 3秒后自动消失
+                setTimeout(() => {
+                    if (messageElement.parentNode) {
+                        messageElement.parentNode.removeChild(messageElement);
+                    }
+                }, 3000);
+            }
+            
+            clearError() {
+                this.elements.errorMsg.textContent = '';
+                this.elements.errorMsg.style.display = 'none';
+				}
+            
+            sanitizeInput(str) {
+                if (!str) return '';
+                return str.toString()
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#x27;');
+            }
+            
+            cleanup() {
+                if (this.realtimeSubscription && this.supabase) {
+                    this.supabase.removeChannel(this.realtimeSubscription);
+                }
+                if (this.heartbeatInterval) {
+                    clearInterval(this.heartbeatInterval);
+                }
+            }
+        }
+
+        // 全局访问
+        window.CommentApp = CommentApp;
+
+        // 页面卸载时清理资源
+        window.addEventListener('beforeunload', () => {
+            if (window.commentApp) {
+                window.commentApp.cleanup();
+            }
+        });
+    </script>
+</body>
+</html>
