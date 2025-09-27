@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>💬 人物评论系统</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬💬💬💬</text></svg>">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
             margin: 0;
@@ -14,13 +14,19 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
-            padding: 20px;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+	line-height: 1.6;
+	color: #333;
+	background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+	min-height: 100vh;
+	padding: 20px;
+	text-align: center;
         }
+		.title_down78 {
+    color: #666;
+    background-color: #f1f2f3;
+    padding: 20px;
+}
 
         .header {
             background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
@@ -227,6 +233,12 @@ font-size: 16px;
     border-radius: 5px;
     margin-top: 10px;
 }
+.title_down {
+	color: #666;
+	background-color: #f1f2f3;
+	padding: 20px;
+	text-align: center;
+}
 
 .message.error {
     background: #fee2e2;
@@ -269,7 +281,13 @@ font-size: 16px;
         flex-direction: column;
         align-items: flex-start;
     }
-    
+    .title_down {
+	color: #666;
+	background-color: #f1f2f3;
+	padding: 20px;
+}
+
+
     .star-rating {
         flex-direction: column;
         align-items: flex-start;
@@ -281,6 +299,9 @@ font-size: 16px;
 .profile-image11,
 .profile-image111 {
     display: none;
+}
+    .container .title_down p {
+	text-align: center;
 }
     </style>
 </head>
@@ -308,9 +329,10 @@ font-size: 16px;
     <a href="https://gamemaker7788.github.io/2/wyc.html" class="profile-image">王昱朝</a>
 </div>
 
-<div class="footer">
-    <p>作者: 王 | © 数据实时同步 | 2025/9/20</p>
+<div class="title_down78">
+    <p>作者: 王 | © 数据实时同步 | 2025/9/27</p>
 </div>
+
 </div>
 </body>
 
